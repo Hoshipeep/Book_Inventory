@@ -78,7 +78,7 @@ if (signIn) {
         showMessage('Login is successful', 'signInMessage');
         const user = userCredential.user;
         localStorage.setItem('loggedInUserId', user.uid);
-        window.location.href = 'index.html';
+        window.location.href = 'books.html';
       })
       .catch((error) => {
         const errorCode = error.code;

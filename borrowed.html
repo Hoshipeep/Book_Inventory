@@ -9,11 +9,11 @@
 <body>
     <nav>
         <div class="nav-links">
-            <a href="index.html">Home</a>
             <a href="books.html">Books</a>
             <a href="borrowed.html" class="active">Borrowed</a>
+            <a href="index.html">Profile</a>
         </div>
-        <img src="user.png" alt="User Profile" class="profile-icon">
+        <a href="#">Logout</a>
     </nav>
 
     <div class="container">
@@ -21,6 +21,22 @@
         <div class="search-bar">
             <button>Filter</button>
             <input type="text" placeholder="Search">
+        </div>
+        <div class="display">
+            <ul id="booklist" class="book-list">
+                <li>
+                    <h3>The Great Gatsby</h3>
+                    <p>by F. Scott Fitzgerald</p>
+                    <div class="book-image">Image</div>
+                    <button>See More</button>
+                  </li>
+                  <li>
+                    <h3>1984</h3>
+                    <p>by George Orwell</p>
+                    <div class="book-image">Image</div>
+                    <button>See More</button>
+                  </li>
+            </ul>
         </div>
     </div>
 </body>

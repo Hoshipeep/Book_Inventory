@@ -5,8 +5,8 @@ body, html {
 }
 
 .container {
-  display: flex;
-  height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr;
 }
 
 .image-side {
@@ -24,6 +24,52 @@ body, html {
   flex-direction: column;
   justify-content: center;
 }
+
+.book-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px;
+  list-style-type: none;
+}
+
+.book-list li {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 2px 2px 10px rgba(0,0,0,0.15);
+  width: 200px;
+  padding: 15px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.book-image {
+  width: 100%;
+  height: 150px;
+  background-color: #ddd;
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #555;
+}
+
+.book-image img {
+  width: 100%;
+  height: 150px;
+  background-color: #ddd;
+  opacity: 85%;
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #555;
+}
+
 
 h2 {
   margin-bottom: 10px;
@@ -160,14 +206,15 @@ nav a.active {
 }
 
 .search-bar button {
-  padding: 10px 20px;
+  padding: 5px 15px;
   background-color: #9b5a57;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
-  width: 120px; 
+  width: 90px; 
+  height: 40px;
 }
 
 .search-bar button:hover {
