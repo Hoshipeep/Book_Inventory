@@ -1,20 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyDTjuuiKk6JTN-X1r_JsENwOLePcPmY7W0",
-  authDomain: "library-system-6738d.firebaseapp.com",
-  projectId: "library-system-6738d",
-  storageBucket: "library-system-6738d.appspot.com",
-  messagingSenderId: "557477699859",
-  appId: "1:557477699859:web:ca2d331a1645bc3d91bae6"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth();
-const db = getFirestore();
+import { app, db, auth } from './firebaseconfig.js';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { setDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 function showMessage(message, divId) {
   const messageDiv = document.getElementById(divId);
@@ -78,7 +64,7 @@ if (signIn) {
         showMessage('Login is successful', 'signInMessage');
         const user = userCredential.user;
         localStorage.setItem('loggedInUserId', user.uid);
-        window.location.href = 'books.html';
+        window.location.href = 'index.html';
       })
       .catch((error) => {
         const errorCode = error.code;
