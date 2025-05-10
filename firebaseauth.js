@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -9,7 +10,8 @@ const firebaseConfig = {
   projectId: "library-system-6738d",
   storageBucket: "library-system-6738d.appspot.com",
   messagingSenderId: "557477699859",
-  appId: "1:557477699859:web:ca2d331a1645bc3d91bae6"
+  appId: "1:557477699859:web:ca2d331a1645bc3d91bae6",
+  databaseURL: "https://library-system-6738d-default-rtdb.firebaseio.com"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -43,6 +45,7 @@ if (signUp) {
         const userData = {
           email: email,
           username: username,
+          admin: false
         };
 
         showMessage('Account Created Successfully', 'signUpMessage');
@@ -70,6 +73,8 @@ if (signIn) {
   signIn.addEventListener('click', (event) => {
     event.preventDefault();
 
+    setPersistence(auth, browserSessionPersistence);
+
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
 
@@ -90,3 +95,54 @@ if (signIn) {
       });
   });
 }
+
+async function addBook(title, author, imageUrl) {
+  const db = getDatabase();
+  const bookRef = ref(db, 'books');
+  
+  const newBook = {
+      title: title,
+      author: author,
+      imageUrl: imageUrl,
+      createdAt: Date.now(),
+      available: true
+  };
+  
+  try {
+      await set(push(bookRef), newBook);
+      showMessage('Book Added Successfully', 'bookMessage');
+  } catch (error) {
+      showMessage(`Failed to add book: ${error.message}`, 'bookMessage');
+  }
+}
+
+function loadBooks() {
+  const db = getDatabase();
+  const booksRef = ref(db, 'books');
+  
+  onValue(booksRef, (snapshot) => {
+      const bookList = document.getElementById('booklist');
+      bookList.innerHTML = '';
+      
+      snapshot.forEach((bookSnapshot) => {
+          const book = bookSnapshot.val();
+          
+          const bookListItem = `
+              <li>
+                  <h3>${book.title}</h3>
+                  <p>by ${book.author}</p>
+                  <div class="book-image">
+                      <img src="${book.imageUrl}" alt="${book.title}">
+                  </div>
+                  <button>See More</button>
+              </li>
+          `;
+          
+          bookList.insertAdjacentHTML('beforeend', bookListItem);
+      });
+  }, (error) => {
+      console.error('Error loading books:', error);
+  });
+}
+
+export { addBook, loadBooks };

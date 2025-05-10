@@ -1,0 +1,8 @@
+5/11/2025 - Trent
+- Created Realtime Database in Firebase
+- Updated db Rules
+- Added addBook() & loadBooks() functions in firebaseauth.js
+- Added a form in books.html for adding a new book
+- Created books.js
+- A new book can be added in books.html by pressing "Add", and a form will popup to fill in details
+- Updated main.css for form design
