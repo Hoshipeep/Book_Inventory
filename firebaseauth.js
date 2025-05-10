@@ -46,6 +46,7 @@ if (signUp) {
           email: email,
           username: username,
           admin: false
+          admin: false
         };
 
         showMessage('Account Created Successfully', 'signUpMessage');
