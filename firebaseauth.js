@@ -29,6 +29,7 @@ if (signUp) {
         const userData = {
           email: email,
           username: username,
+          admin: false
         };
 
         showMessage('Account Created Successfully', 'signUpMessage');
