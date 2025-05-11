@@ -6,6 +6,8 @@
     <title>Books</title>
     <link rel="stylesheet" href="main.css">
     <script type="module" src="books.js"></script>
+    <script type="module" src="navbar.js"></script>
+
 
 </head>
 <body>
@@ -15,11 +17,13 @@
         <nav>
           <a href="dashboard.html">Home</a>
           <a href="about.html">About</a>
-          <a href="books.html" class="active">Books</a>
+          <a href="books.html">Books</a>
+          <a href="index.html" id="profileLink">Profile</a>
         </nav>
         <div class="auth-buttons">
-          <a href="signin.html" class="btn">Sign In</a>
-          <a href="signup.html" class="btn primary">Get Started</a>
+          <a href="signin.html" class="btn" id="signinLink">Sign In</a>
+          <a href="signup.html" class="btn primary" id="signUpLink">Get Started</a>
+          <a href="#" class="btn" id="logoutLink">Log Out</a>
         </div>
       </header>
       
@@ -27,7 +31,7 @@
         <h1>Books</h1>
         <div class="search-bar">
             <button>Filter</button>
-            <button id="showAddForm">Add</button>
+            <button><a href="addbook.html" class="btn" style="text-decoration: none; color:white;">Add</a></button>
             <input type="text" placeholder="Search">
         </div>
         <div class="display">
@@ -37,15 +41,5 @@
         </div>
     </div>
 </body>
-
-<div class="add-book-form" id="addBookWrapper">
-    <form id="addBookForm">
-        <input type="text" id="title" placeholder="Title" required>
-        <input type="text" id="author" placeholder="Author" required>
-        <input type="text" id="imageUrl" placeholder="Image URL" required>
-        <button type="submit">Add Book</button>
-    </form>
-    <div id="bookMessage"></div>
-</div>
 
 </html>

@@ -221,6 +221,11 @@ header {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
+#profileLink,
+#logoutLink {
+  display: none;
+}
+
 .logo {
   font-size: 24px;
   font-weight: bold;
@@ -304,7 +309,7 @@ main {
   background-color: #a0665b;
   border-radius: 10px;
   box-shadow: 2px 2px 10px rgba(0,0,0,0.15);
-  margin: 0px 200px 100px 200px;
+  margin: 100px 200px 100px 200px;
 }
 
 .add-book-form input {
@@ -349,3 +354,5 @@ main {
   opacity: 0;
   animation: fadeOut 7s forwards;
 }
+
+

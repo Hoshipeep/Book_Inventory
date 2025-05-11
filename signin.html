@@ -5,6 +5,8 @@
   <title>Sign In</title>
   <link rel="stylesheet" href="main.css">
   <script type="module" src="firebaseauth.js"></script>
+  <script type="module" src="navbar.js"></script>
+
 </head>
 <body>
 
@@ -14,10 +16,12 @@
       <a href="dashboard.html">Home</a>
       <a href="about.html">About</a>
       <a href="books.html">Books</a>
+      <a href="index.html" id="profileLink">Profile</a>
     </nav>
     <div class="auth-buttons">
-      <a href="signin.html" class="btn">Sign In</a>
-      <a href="signup.html" class="btn primary">Get Started</a>
+      <a href="signin.html" class="btn" id="signinLink">Sign In</a>
+      <a href="signup.html" class="btn primary" id="signUpLink">Get Started</a>
+      <a href="#" class="btn" id="logoutLink">Log Out</a>
     </div>
   </header>
 

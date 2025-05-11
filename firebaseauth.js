@@ -1,22 +1,7 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { app, auth, db } from './firebaseconfig.js';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { setDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
-
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyDTjuuiKk6JTN-X1r_JsENwOLePcPmY7W0",
-  authDomain: "library-system-6738d.firebaseapp.com",
-  projectId: "library-system-6738d",
-  storageBucket: "library-system-6738d.appspot.com",
-  messagingSenderId: "557477699859",
-  appId: "1:557477699859:web:ca2d331a1645bc3d91bae6",
-  databaseURL: "https://library-system-6738d-default-rtdb.firebaseio.com"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth();
-const db = getFirestore();
 
 function showMessage(message, divId) {
   const messageDiv = document.getElementById(divId);
@@ -29,7 +14,6 @@ function showMessage(message, divId) {
   }, 5000);
 }
 
-// --- Sign Up Event Listener ---
 const signUp = document.getElementById('submitSignUp');
 if (signUp) {
   signUp.addEventListener('click', (event) => {
@@ -45,7 +29,6 @@ if (signUp) {
         const userData = {
           email: email,
           username: username,
-          admin: false
           admin: false
         };
 
@@ -68,13 +51,10 @@ if (signUp) {
   });
 }
 
-// --- Sign In Event Listener ---
 const signIn = document.getElementById('submitSignIn');
 if (signIn) {
   signIn.addEventListener('click', (event) => {
     event.preventDefault();
-
-    setPersistence(auth, browserSessionPersistence);
 
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
