@@ -7,49 +7,42 @@ document.addEventListener('DOMContentLoaded', () => {
   const signinLink = document.getElementById('signinLink');
   const signupLink = document.getElementById('signUpLink');
   const logoutLink = document.getElementById('logoutLink');
+  const navbar = document.querySelector('.navbar');
 
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      const loggedInUserId = localStorage.getItem('loggedInUserId');
+  onAuthStateChanged(auth, async (user) => {
+    try {
+      if (user) {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
 
-      if (loggedInUserId) {
-        const docRef = doc(db, "users", loggedInUserId);
-        getDoc(docRef)
-          .then((docSnap) => {
-            if (docSnap.exists()) {
-              if (signinLink) signinLink.style.display = 'none';
-              if (signupLink) signupLink.style.display = 'none';
-              if (profileLink) profileLink.style.display = 'inline-block';
-              if (logoutLink) logoutLink.style.display = 'inline-block';
-            } else {
-              console.log("No document found matching ID");
-            }
-          })
-          .catch((error) => {
-            console.error("Error getting doc: ", error);
-          });
+        if (docSnap.exists()) {
+          signinLink?.style.setProperty('display', 'none');
+          signupLink?.style.setProperty('display', 'none');
+          profileLink?.style.setProperty('display', 'inline-block');
+          logoutLink?.style.setProperty('display', 'inline-block');
+        }
       } else {
-        console.log("User ID not found in localStorage");
+        profileLink?.style.setProperty('display', 'none');
+        logoutLink?.style.setProperty('display', 'none');
+        signinLink?.style.setProperty('display', 'inline-block');
+        signupLink?.style.setProperty('display', 'inline-block');
       }
-    } else {
-      if (profileLink) profileLink.style.display = 'none';
-      if (logoutLink) logoutLink.style.display = 'none';
-      if (signinLink) signinLink.style.display = 'inline-block';
-      if (signupLink) signupLink.style.display = 'inline-block';
+    } catch (error) {
+      console.error("Auth/nav error:", error);
+    } finally {
+      navbar?.classList.add('show'); // Show navbar only after auth check
     }
   });
 
-  if (logoutLink) {
-    logoutLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      signOut(auth)
-        .then(() => {
-          localStorage.removeItem('loggedInUserId');
-          window.location.href = 'signin.html';
-        })
-        .catch((error) => {
-          console.error('Error signing out:', error);
-        });
-    });
-  }
+  logoutLink?.addEventListener('click', (e) => {
+    e.preventDefault();
+    signOut(auth)
+      .then(() => {
+        localStorage.removeItem('loggedInUserId');
+        window.location.href = 'signin.html';
+      })
+      .catch((error) => {
+        console.error('Error signing out:', error);
+      });
+  });
 });

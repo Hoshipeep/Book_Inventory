@@ -3,6 +3,16 @@
   box-sizing: border-box;
 }
 
+/* Hide navbar until Firebase auth is done */
+.navbar {
+  visibility: hidden;
+}
+
+/* Make it visible once ready */
+.navbar.show {
+  visibility: visible;
+}
+
 body, html {
   margin: 0;
   padding: 0;
@@ -37,8 +47,8 @@ body, html {
 .book-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
-  padding: 20px;
+  gap: 15px;
+  padding: 30px;
   list-style-type: none;
 }
 
