@@ -271,10 +271,10 @@ function showModal(book, bookId = null) {
 
   modal.classList.remove('hidden');
 
-  document.getElementById('borrowBtn').onclick = () => {
-    borrowBook(book, bookId);
-    modal.classList.add('hidden');
-  };
+  // document.getElementById('borrowBtn').onclick = () => {
+  //   borrowBook(book, bookId);
+  //   modal.classList.add('hidden');
+  // };
 
   const closeModal = () => modal.classList.add('hidden');
 

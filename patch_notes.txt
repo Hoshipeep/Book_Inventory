@@ -45,3 +45,6 @@
 - Modified Realtime DB Rules to include borrowed table writing & reading
 - Added borrowBook() function to change a book to borrowed in firebaseauth.js
 - Modified loadBorrowedBooks() to actually display books with the loggedinID compared to the BorrowedByID
+
+5/12/2025 - 12:01AM Aj :3
+-Added working see more modal in borrowed.html
