@@ -128,11 +128,11 @@ function loadBooks() {
   onValue(booksRef, (snapshot) => {
     const bookList = document.getElementById('booklist');
     bookList.innerHTML = '';
-    
+  
     snapshot.forEach((bookSnapshot) => {
       const book = bookSnapshot.val();
-      const availabilityText = book.available ? 'Available' : 'Not Available';
-
+      const bookId = bookSnapshot.key;
+  
       const bookListItem = document.createElement('li');
       bookListItem.innerHTML = `
         <h3>${book.title}</h3>
@@ -143,24 +143,84 @@ function loadBooks() {
         <p>₱${parseFloat(book.price).toFixed(2)}</p>
         <button class="see-more-btn">See More</button>
       `;
-
+  
       const button = bookListItem.querySelector('.see-more-btn');
       button.addEventListener('click', () => {
-        showModal(book);
+        showModal(book, bookId);
       });
-
+  
       bookList.appendChild(bookListItem);
     });
   }, (error) => {
     console.error('Error loading books:', error);
   });
-}
+}  
 
+async function borrowBook(book, originalBookId) {
+  const db = getDatabase();
+  const userId = localStorage.getItem('loggedInUserId');
+
+  if (!userId) {
+    showMessage('You must be signed in to borrow books.', 'bookMessage', 'error');
+    return;
+  }
+
+  const originalBookRef = ref(db, `books/${originalBookId}/available`);
+  const borrowedRef = ref(db, 'borrowed');
+
+  try {
+    //This part checks if the book is available or not
+    const availableSnapshot = await new Promise((resolve, reject) => {
+      onValue(originalBookRef, resolve, { onlyOnce: true, errorCallback: reject });
+    });
+
+    const isAvailable = availableSnapshot.val();
+
+    if (!isAvailable) {
+      alert('This book is currently unavailable.');
+      return;
+    }
+
+    const borrowedSnapshot = await new Promise((resolve, reject) => {
+      onValue(borrowedRef, resolve, { onlyOnce: true, errorCallback: reject });
+    });
+
+    let alreadyBorrowed = false;
+
+    //this part checks if you already borrowed this book :>
+    borrowedSnapshot.forEach((childSnapshot) => {
+      const borrowedBook = childSnapshot.val();
+      if (borrowedBook.originalBookId === originalBookId && borrowedBook.borrowedBy === userId) {
+        alreadyBorrowed = true;
+      }
+    });
+
+    if (alreadyBorrowed) {
+      alert('You have already borrowed this book.');
+      return;
+    }
+
+    const newBorrowRef = push(borrowedRef);
+    const borrowedBook = {
+      ...book,
+      borrowedBy: userId,
+      originalBookId: originalBookId,
+      borrowedAt: Date.now()
+    };
+
+    await set(newBorrowRef, borrowedBook);
+    await set(ref(db, `books/${originalBookId}/available`), false);
+
+    showMessage('Book borrowed successfully!', 'bookMessage', 'success');
+  } catch (error) {
+    showMessage(`Failed to borrow book: ${error.message}`, 'bookMessage', 'error');
+  }
+}
 
 
 function loadBorrowedBooks() {
   const db = getDatabase();
-  const booksRef = ref(db, 'books');
+  const booksRef = ref(db, 'borrowed');
   const userId = localStorage.getItem('loggedInUserId');
 
   if (!userId) {
@@ -176,14 +236,15 @@ function loadBorrowedBooks() {
 
     snapshot.forEach((bookSnapshot) => {
       const book = bookSnapshot.val();
-      if (book.createdBy === userId) {
+      if (book.borrowedBy === userId) {
         const bookListItem = `
           <li>
             <h3>${book.title}</h3>
             <p>by ${book.author}</p>
-            <div class="book-image">
-              <img src="${book.imageUrl}" alt="${book.title}">
-            </div>
+            ${book.imageUrl ? `
+              <div class="book-image">
+                <img src="${book.imageUrl}" alt="${book.title}" onerror="this.style.display='none';">
+              </div>` : ''}
             <p>₱${parseFloat(book.price).toFixed(2)}</p>
             <button>See More</button>
           </li>
@@ -198,7 +259,7 @@ function loadBorrowedBooks() {
 }
 
 
-function showModal(book) {
+function showModal(book, bookId = null) {
   const modal = document.getElementById('bookModal');
   document.getElementById('modalTitle').textContent = book.title;
   document.getElementById('modalAuthor').textContent = book.author;
@@ -210,9 +271,12 @@ function showModal(book) {
 
   modal.classList.remove('hidden');
 
-  const closeModal = () => modal.classList.add('hidden');
+  document.getElementById('borrowBtn').onclick = () => {
+    borrowBook(book, bookId);
+    modal.classList.add('hidden');
+  };
 
-  // Close with X or click outside
+  const closeModal = () => modal.classList.add('hidden');
 
   window.onclick = (event) => {
     if (event.target === modal) {
@@ -220,11 +284,9 @@ function showModal(book) {
     }
   };
 
-  // Cancel Button
   document.getElementById('cancelBtn').onclick = closeModal;
-
-
 }
+
 
 
 
