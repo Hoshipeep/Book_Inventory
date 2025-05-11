@@ -85,15 +85,23 @@ if (signIn) {
   });
 }
 
-async function addBook(title, author, imageUrl) {
+async function addBook(title, author, imageUrl, description) {
   const db = getDatabase();
   const bookRef = ref(db, 'books');
   
+  const userId = localStorage.getItem('loggedInUserId');
+  if (!userId) {
+    showMessage('User not logged in. Please sign in.', 'bookMessage');
+    return;
+  }
+
   const newBook = {
       title: title,
       author: author,
       imageUrl: imageUrl,
       createdAt: Date.now(),
+      createdBy: userId,
+      description: description,
       available: true
   };
   

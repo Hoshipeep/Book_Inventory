@@ -12,3 +12,6 @@
 - Added navbar functionality for all html files, if user is logged in or not
 - Created navbar.js
 - Created addbook.html, separated books and adding new book into separate html, but they stil share the same books.js, might be not organized
+
+5/11/2025 - 2:30 Aj
+- Added confirm password functionality in signin

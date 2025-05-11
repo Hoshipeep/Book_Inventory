@@ -11,7 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const title = document.getElementById('title').value;
       const author = document.getElementById('author').value;
       const imageUrl = document.getElementById('imageUrl').value;
-      await addBook(title, author, imageUrl);
+      const description = document.getElementById('description').value;
+      await addBook(title, author, imageUrl, description);
       addBookForm.reset();
       window.location.href = 'books.html';
     });
