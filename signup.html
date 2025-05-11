@@ -31,9 +31,11 @@
       <div id="signUpMessage" class="messageDiv" style="display:none;"></div>
       <p>Already Have an Account? <a href="signin.html">Login Here</a></p>
       <form id="signupForm">
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="text" id="username" placeholder="Username" required>
-        <input type="password" id="password" placeholder="Password" required>
+       <input type="email" id="email" placeholder="Email" required>
+      <input type="text" id="username" placeholder="Username" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <input type="password" id="confirmPassword" placeholder="Confirm Password" required> <!-- Updated placeholder -->
+      <div id="passwordError" class="messageDiv" style="display:none;"></div>
         <button type="button" id="submitSignUp">Register</button>
       </form>
     </div>

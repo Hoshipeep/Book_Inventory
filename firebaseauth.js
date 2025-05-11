@@ -21,7 +21,14 @@ if (signUp) {
 
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
     const username = document.getElementById('username').value;
+
+
+    if (password !== confirmPassword) {
+      showMessage('Passwords do not match', 'passwordError');
+      return;
+    }
 
     createUserWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
@@ -50,6 +57,7 @@ if (signUp) {
       });
   });
 }
+
 
 const signIn = document.getElementById('submitSignIn');
 if (signIn) {
