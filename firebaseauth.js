@@ -126,30 +126,37 @@ function loadBooks() {
   const booksRef = ref(db, 'books');
   
   onValue(booksRef, (snapshot) => {
-      const bookList = document.getElementById('booklist');
-      bookList.innerHTML = '';
-      
-      snapshot.forEach((bookSnapshot) => {
-          const book = bookSnapshot.val();
-          
-          const bookListItem = `
-              <li>
-                <h3>${book.title}</h3>
-                <p>by ${book.author}</p>
-                <div class="book-image">
-                  <img src="${book.imageUrl}" alt="${book.title}">
-                </div>
-                <p>₱${parseFloat(book.price).toFixed(2)}</p>
-                <button>See More</button>
-            </li>
-          `;
-          
-          bookList.insertAdjacentHTML('beforeend', bookListItem);
+    const bookList = document.getElementById('booklist');
+    bookList.innerHTML = '';
+    
+    snapshot.forEach((bookSnapshot) => {
+      const book = bookSnapshot.val();
+      const availabilityText = book.available ? 'Available' : 'Not Available';
+
+      const bookListItem = document.createElement('li');
+      bookListItem.innerHTML = `
+        <h3>${book.title}</h3>
+        <p>by ${book.author}</p>
+        <div class="book-image">
+          <img src="${book.imageUrl}" alt="${book.title}">
+        </div>
+        <p>₱${parseFloat(book.price).toFixed(2)}</p>
+        <button class="see-more-btn">See More</button>
+      `;
+
+      const button = bookListItem.querySelector('.see-more-btn');
+      button.addEventListener('click', () => {
+        showModal(book);
       });
+
+      bookList.appendChild(bookListItem);
+    });
   }, (error) => {
-      console.error('Error loading books:', error);
+    console.error('Error loading books:', error);
   });
 }
+
+
 
 function loadBorrowedBooks() {
   const db = getDatabase();
@@ -189,6 +196,38 @@ function loadBorrowedBooks() {
     console.error('Error loading user\'s books:', error);
   });
 }
+
+
+function showModal(book) {
+  const modal = document.getElementById('bookModal');
+  document.getElementById('modalTitle').textContent = book.title;
+  document.getElementById('modalAuthor').textContent = book.author;
+  document.getElementById('modalImage').src = book.imageUrl;
+  document.getElementById('modalImage').alt = book.title;
+  document.getElementById('modalDescription').textContent = book.description || 'No description available.';
+  document.getElementById('modalPrice').textContent = parseFloat(book.price).toFixed(2);
+  document.getElementById('modalAvailability').textContent = book.available ? 'Available' : 'Not Available';
+
+  modal.classList.remove('hidden');
+
+  const closeModal = () => modal.classList.add('hidden');
+
+  // Close with X or click outside
+
+  window.onclick = (event) => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  };
+
+  // Cancel Button
+  document.getElementById('cancelBtn').onclick = closeModal;
+
+
+}
+
+
+
 
 
 export { addBook, loadBooks, loadBorrowedBooks };

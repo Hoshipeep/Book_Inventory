@@ -33,4 +33,8 @@
     - Created borrowedbooks.js
     - Added loadBorrowedBooks() function in firebaseauth.js
     - Modified borrowed.html
-- 
+
+5/11/2025 - 11:04PM Aj :3
+-Modified: books.html, firebaseauth.js
+-Added working see more modal in books.html
+-Added show modal function in firebaseauth.js
