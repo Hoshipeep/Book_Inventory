@@ -5,48 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Borrowed</title>
     <link rel="stylesheet" href="main.css">
+    <script type="module" src="borrowedbooks.js"></script>
     <script type="module" src="navbar.js"></script>
 
 </head>
 <body>
     
-    <div class="navbar">
-      <header>
-        <div class="logo">📚 MyLibrary</div>
-        <nav>
-          <a href="dashboard.html">Home</a>
-          <a href="about.html">About</a>
-          <a href="books.html">Books</a>
-          <a href="index.html" id="profileLink">Profile</a>
-        </nav>
-        <div class="auth-buttons">
-          <a href="signin.html" class="btn" id="signinLink">Sign In</a>
-          <a href="signup.html" class="btn primary" id="signUpLink">Get Started</a>
-          <a href="#" class="btn" id="logoutLink">Log Out</a>
-        </div>
-      </header>
-    </div>
+    <div id="navbar-placeholder"></div>
+
 
     <div class="container">
-        <h1>Borrowed</h1>
         <div class="search-bar">
             <button>Filter</button>
             <input type="text" placeholder="Search">
         </div>
         <div class="display">
             <ul id="booklist" class="book-list">
-                <li>
-                    <h3>The Great Gatsby</h3>
-                    <p>by F. Scott Fitzgerald</p>
-                    <div class="book-image">Image</div>
-                    <button>See More</button>
-                  </li>
-                  <li>
-                    <h3>1984</h3>
-                    <p>by George Orwell</p>
-                    <div class="book-image">Image</div>
-                    <button>See More</button>
-                  </li>
+
             </ul>
         </div>
     </div>

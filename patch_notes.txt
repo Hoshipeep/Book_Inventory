@@ -23,3 +23,14 @@
 -Added changed Realtime Database rule
 -Made it so navbar disappears if still loading to at least make it look like data is loading
 -Made books visible even when not logged in
+
+5/11/2025 - 9:17PM Trent
+- Modified: addbook.html, books.js, firebaseauth.js
+- Added description, price, createdBy fields for books
+- Created navbar.html, Modified all navbars and navbar.js for modularity, added Borrowed and Add New Book
+- Removed 'h1' headers "Books" and "Borrowed", its redundant with navbar title
+- Borrowed Books Display functionality
+    - Created borrowedbooks.js
+    - Added loadBorrowedBooks() function in firebaseauth.js
+    - Modified borrowed.html
+- 

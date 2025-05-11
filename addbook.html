@@ -12,22 +12,8 @@
 </head>
 <body>
 
-    <div class="navbar">
-      <header>
-        <div class="logo">📚 MyLibrary</div>
-        <nav>
-          <a href="dashboard.html">Home</a>
-          <a href="about.html">About</a>
-          <a href="books.html">Books</a>
-          <a href="index.html" id="profileLink">Profile</a>
-        </nav>
-        <div class="auth-buttons">
-          <a href="signin.html" class="btn" id="signinLink">Sign In</a>
-          <a href="signup.html" class="btn primary" id="signUpLink">Get Started</a>
-          <a href="#" class="btn" id="logoutLink">Log Out</a>
-        </div>
-      </header>
-    </div>
+    <div id="navbar-placeholder"></div>
+
       
       <div class="container">
         <h1>Add A New Book...</h1>
@@ -39,6 +25,7 @@
             <input type="text" id="author" placeholder="Author" required>
             <input type="text" id="imageUrl" placeholder="Image URL" required>
             <input type="text" id="description" placeholder="Book Description" required>
+            <input type="number" id="price" placeholder="Price (₱)" min="0" step="0.01" required>
             <button type="submit">Add Book</button>
         </form>
         <div id="bookMessage"></div>

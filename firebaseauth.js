@@ -92,7 +92,7 @@ if (signIn) {
   });
 }
 
-async function addBook(title, author, imageUrl, description) {
+async function addBook(title, author, imageUrl, description, price) {
   const db = getDatabase();
   const bookRef = ref(db, 'books');
   
@@ -109,6 +109,7 @@ async function addBook(title, author, imageUrl, description) {
       createdAt: Date.now(),
       createdBy: userId,
       description: description,
+      price, price,
       available: true
   };
   
@@ -133,13 +134,14 @@ function loadBooks() {
           
           const bookListItem = `
               <li>
-                  <h3>${book.title}</h3>
-                  <p>by ${book.author}</p>
-                  <div class="book-image">
-                      <img src="${book.imageUrl}" alt="${book.title}">
-                  </div>
-                  <button>See More</button>
-              </li>
+                <h3>${book.title}</h3>
+                <p>by ${book.author}</p>
+                <div class="book-image">
+                  <img src="${book.imageUrl}" alt="${book.title}">
+                </div>
+                <p>₱${parseFloat(book.price).toFixed(2)}</p>
+                <button>See More</button>
+            </li>
           `;
           
           bookList.insertAdjacentHTML('beforeend', bookListItem);
@@ -149,4 +151,44 @@ function loadBooks() {
   });
 }
 
-export { addBook, loadBooks };
+function loadBorrowedBooks() {
+  const db = getDatabase();
+  const booksRef = ref(db, 'books');
+  const userId = localStorage.getItem('loggedInUserId');
+
+  if (!userId) {
+    showMessage('User not logged in. Please sign in.', 'bookMessage');
+    return;
+  }
+
+  onValue(booksRef, (snapshot) => {
+    const bookList = document.getElementById('booklist');
+    if (!bookList) return;
+
+    bookList.innerHTML = '';
+
+    snapshot.forEach((bookSnapshot) => {
+      const book = bookSnapshot.val();
+      if (book.createdBy === userId) {
+        const bookListItem = `
+          <li>
+            <h3>${book.title}</h3>
+            <p>by ${book.author}</p>
+            <div class="book-image">
+              <img src="${book.imageUrl}" alt="${book.title}">
+            </div>
+            <p>₱${parseFloat(book.price).toFixed(2)}</p>
+            <button>See More</button>
+          </li>
+        `;
+        bookList.insertAdjacentHTML('beforeend', bookListItem);
+      }
+    });
+
+  }, (error) => {
+    console.error('Error loading user\'s books:', error);
+  });
+}
+
+
+export { addBook, loadBooks, loadBorrowedBooks };

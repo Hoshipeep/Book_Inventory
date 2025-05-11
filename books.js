@@ -12,7 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const author = document.getElementById('author').value;
       const imageUrl = document.getElementById('imageUrl').value;
       const description = document.getElementById('description').value;
-      await addBook(title, author, imageUrl, description);
+      const price = document.getElementById('price').value;
+      await addBook(title, author, imageUrl, description, price);
+      
       addBookForm.reset();
       window.location.href = 'books.html';
     });
