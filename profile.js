@@ -1,6 +1,8 @@
 import { auth, db } from './firebaseconfig.js';
-import { onAuthStateChanged, updateProfile, updateEmail, updatePassword, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { onAuthStateChanged, updateProfile, updateEmail, updatePassword, EmailAuthProvider , reauthenticateWithCredential} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { loadBorrowedBooksTable } from './firebaseauth.js';
+
 
 const emailInput = document.getElementById("email");
 const usernameInput = document.getElementById("username");
@@ -13,14 +15,18 @@ let currentUser = null;
 
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    const welcomeMessageElement = document.querySelector('.container h1');
+
+    loadBorrowedBooksTable();
     const docRef = doc(db, "users", user.uid);
     const docSnap = await getDoc(docRef);
-    const username = docSnap.exists() ? docSnap.data().username : user.displayName || "User";
+    console.log("Auth state changed:", user);
 
-    if (welcomeMessageElement) {
-          welcomeMessageElement.textContent = `Hello, ${username}!`;
-        }
+    if (docSnap.exists()) {
+      const userData = docSnap.data();
+      const balance = userData.balance || 0;
+      document.getElementById("userBalance").textContent =  `₱${parseFloat(balance).toFixed(2)}`;
+    }
+  
 
     currentUser = user;
     emailInput.value = user.email || "";

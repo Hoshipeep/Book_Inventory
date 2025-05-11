@@ -1,7 +1,8 @@
 import { app, auth, db } from './firebaseconfig.js';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { setDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
 
 function showMessage(message, divId, type = "success") {
   const messageDiv = document.getElementById(divId);
@@ -43,7 +44,8 @@ if (signUp) {
         const userData = {
           email: email,
           username: username,
-          admin: false
+          admin: false,
+          balance: 0.00
         };
 
         showMessage('Account Created Successfully', 'signUpMessage', 'success');
@@ -287,9 +289,44 @@ function showModal(book, bookId = null) {
   document.getElementById('cancelBtn').onclick = closeModal;
 }
 
+function loadBorrowedBooksTable() {
+  const db = getDatabase();
+  const borrowedRef = ref(db, 'borrowed');
+  const userId = localStorage.getItem('loggedInUserId');
+
+  if (!userId) {
+    showMessage('User not logged in. Please sign in.', 'bookMessage');
+    return;
+  }
+
+  onValue(borrowedRef, (snapshot) => {
+    const tableBody = document.getElementById('borrowedBooksTableBody');
+    if (!tableBody) return;
+
+    tableBody.innerHTML = '';
+
+    snapshot.forEach((borrowedSnapshot) => {
+      const borrowed = borrowedSnapshot.val();
+      if (borrowed.borrowedBy === userId) {
+        const row = document.createElement('tr');
+
+        row.innerHTML = `
+          <td>${borrowed.title}</td>
+          <td>${borrowed.author}</td>
+          <td><img src="${borrowed.imageUrl}" alt="${borrowed.title}" width="50" height="75" onerror="this.style.display='none';" /></td>
+          <td>₱${parseFloat(borrowed.price).toFixed(2)}</td>
+          <td>${new Date(borrowed.borrowedAt).toLocaleString()}</td>
+        `;
+
+        tableBody.appendChild(row);
+      }
+    });
+  }, (error) => {
+    console.error('Error loading borrowed books:', error);
+  });
+}
 
 
 
 
-
-export { addBook, loadBooks, loadBorrowedBooks };
+export { addBook, loadBooks, loadBorrowedBooks, loadBorrowedBooksTable };

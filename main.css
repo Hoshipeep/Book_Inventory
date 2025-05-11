@@ -424,3 +424,66 @@ main {
   background-color: #c09484;
   color: white;
 }
+
+.table-container {
+  max-height: 300px; /* Change height as needed */
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+#borrowedTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#borrowedTable th,
+#borrowedTable td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: center;
+}
+
+#borrowedTable img {
+  max-height: 80px;
+}
+
+
+.user-money {
+  margin: 30px auto; 
+  padding: 40px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background-color: #f9f9f9;
+  max-width: 30rem;
+  width: 40rem;
+  display: block;
+}
+
+.user-money h2 {
+  margin-bottom: 10px;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.money-display {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #28a745; /* green */
+  margin-bottom: 15px;
+}
+
+#depositButton {
+  padding: 15px 30px;
+  font-size: 1rem;
+  background-color: #007bff; /* blue */
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  align-self: flex-end;
+}
+
+#depositButton:hover {
+  background-color: #0056b3;
+}
