@@ -15,3 +15,11 @@
 
 5/11/2025 - 2:30 Aj
 - Added confirm password functionality in signin
+
+
+5/11/2025 - 9:03PM Carl
+-Removed index.js and added profile.js (using index.html as a way to display user profile and edit)
+-Fixed the pop up error msges location
+-Added changed Realtime Database rule
+-Made it so navbar disappears if still loading to at least make it look like data is loading
+-Made books visible even when not logged in

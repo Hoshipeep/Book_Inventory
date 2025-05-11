@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Library</title>
     <link rel="stylesheet" href="main.css">
-    <script type="module" src="index.js"></script>
+    <script type="module" src="profile.js"></script>
     <script type="module" src="navbar.js"></script>
 
     
 </head>
 <body>
-    <header>
+    <div class="navbar">
+      <header>
         <div class="logo">📚 MyLibrary</div>
         <nav>
           <a href="dashboard.html">Home</a>
@@ -25,9 +26,27 @@
           <a href="#" class="btn" id="logoutLink">Log Out</a>
         </div>
       </header>
+    </div>
 
     <div class="container">
-        <h1>Welcome to the Library</h1>
+        <h1></h1>
+
+
     </div>
+
+    <div class="form-side">
+    <h2>Your Profile</h2>
+    <p>Update your account information</p>
+
+    <form id="profileForm">
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="text" id="username" placeholder="Username" required />
+      <input type="password" id="newPassword" placeholder="New Password (optional)" />
+      <button type="submit">Update Profile</button>
+    </form>
+
+    <div id="profileMessage" class="messageDiv" style="display: none;"></div>
+  </div>
+  
 </body>
 </html>

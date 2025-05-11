@@ -3,16 +3,23 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "http
 import { setDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
-function showMessage(message, divId) {
+function showMessage(message, divId, type = "success") {
   const messageDiv = document.getElementById(divId);
   if (!messageDiv) return;
+
   messageDiv.style.display = "block";
   messageDiv.innerHTML = message;
   messageDiv.style.opacity = 1;
+  messageDiv.style.color = "white";
+  messageDiv.style.padding = "10px";
+  messageDiv.style.borderRadius = "5px";
+  messageDiv.style.backgroundColor = type === "success" ? "green" : "red";
+
   setTimeout(() => {
     messageDiv.style.opacity = 0;
   }, 5000);
 }
+
 
 const signUp = document.getElementById('submitSignUp');
 if (signUp) {
@@ -39,20 +46,20 @@ if (signUp) {
           admin: false
         };
 
-        showMessage('Account Created Successfully', 'signUpMessage');
+        showMessage('Account Created Successfully', 'signUpMessage', 'success');
 
         const docRef = doc(db, "users", user.uid);
         return setDoc(docRef, userData);
       })
       .then(() => {
-        window.location.href = 'signin.html';
+        window.location.href = 'index.html';
       })
       .catch((error) => {
         const errorCode = error.code;
         if (errorCode === 'auth/email-already-in-use') {
-          showMessage('Email Address Already Exists', 'signUpMessage');
+          showMessage('Email Address Already Exists', 'signUpMessage', 'error');
         } else {
-          showMessage('Unable to create user', 'signUpMessage');
+          showMessage('Unable to create user', 'signUpMessage', 'error');
         }
       });
   });
@@ -69,7 +76,7 @@ if (signIn) {
 
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
-        showMessage('Login is successful', 'signInMessage');
+        // showMessage('Login is successful', 'signInMessage', 'success');
         const user = userCredential.user;
         localStorage.setItem('loggedInUserId', user.uid);
         window.location.href = 'books.html';
@@ -77,9 +84,9 @@ if (signIn) {
       .catch((error) => {
         const errorCode = error.code;
         if (errorCode === 'auth/invalid-credential') {
-          showMessage('Incorrect Email or Password', 'signInMessage');
+          showMessage('Incorrect Email or Password', 'signInMessage', 'error');
         } else {
-          showMessage('Account Does Not Exist', 'signInMessage');
+          showMessage('Account Does Not Exist', 'signInMessage', 'error');
         }
       });
   });
@@ -107,9 +114,9 @@ async function addBook(title, author, imageUrl, description) {
   
   try {
       await set(push(bookRef), newBook);
-      showMessage('Book Added Successfully', 'bookMessage');
+      showMessage('Book Added Successfully', 'bookMessage', 'success');
   } catch (error) {
-      showMessage(`Failed to add book: ${error.message}`, 'bookMessage');
+      showMessage(`Failed to add book: ${error.message}`, 'bookMessage', 'error');
   }
 }
 
