@@ -46,5 +46,12 @@
 - Added borrowBook() function to change a book to borrowed in firebaseauth.js
 - Modified loadBorrowedBooks() to actually display books with the loggedinID compared to the BorrowedByID
 
-5/12/2025 - 12:01AM Aj :3
--Added working see more modal in borrowed.html
+5/12/2025 - 5:56AM Carl
+-Modified: users (added Balance)
+-Added Transactions Table (Only from borrow collection)
+
+5/12/2025 - 5:56AM Aj
+-Modified: books.html, borrowed.html, firebaseauth.js
+-Modified showmodal to showmodalReturned and made showmodalBorrowed for books and borrowed
+-Added working see more modal in books.html and borrowed.html
+-Added working search bar

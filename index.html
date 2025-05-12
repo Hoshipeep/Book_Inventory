@@ -14,12 +14,6 @@
   <div id="navbar-placeholder"></div>
 
 
-    <div class="container">
-        <h1></h1>
-
-
-    </div>
-
     <div class="form-side">
     <h2>Your Profile</h2>
     <p>Update your account information</p>
@@ -32,6 +26,47 @@
     </form>
 
     <div id="profileMessage" class="messageDiv" style="display: none;"></div>
+
+    <div class="user-money">
+      <h2>Wallet Balance</h2>
+      <div class="money-display" id="userBalance"></div>
+      <button id="depositButton">Deposit</button>
+    </div>
+
+
+    <br>
+    <br>
+    <h2>Transactions</h2>
+
+    <div class="table-container">
+      <table id="borrowedTable">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Author</th>
+              <th>Image</th>
+              <th>Price</th>
+              <th>Transaction Date & Time</th>
+              <th>Transaction Type</th>
+            </tr>
+          </thead>
+          <tbody id="borrowedBooksTableBody">
+            
+          </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <div id="depositModal" class="modal hidden">
+    <div class="deposit-modal">
+      <h2>Deposit Balance</h2>
+      <input type="number" id="depositAmount" placeholder="Enter amount (₱)" min="1" />
+      <div class="deposit-actions">
+        <button id="submitDeposit">Submit</buttonS>
+        <button id="cancelDeposit">Cancel</button>
+      </div>
+    </div>
   </div>
   
 </body>
