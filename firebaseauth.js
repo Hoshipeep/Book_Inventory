@@ -111,7 +111,8 @@ async function addBook(title, author, imageUrl, description, price) {
       createdBy: userId,
       description: description,
       price, price,
-      available: true
+      available: true,
+      active: true
   };
   
   try {
@@ -132,15 +133,20 @@ function loadBooks() {
     snapshot.forEach((bookSnapshot) => {
       const book = bookSnapshot.val();
       const bookId = bookSnapshot.key;
-      allBooks.push({ book, bookId });
+
+      // Only include books with active === true
+      if (book.active !== false) {
+        allBooks.push({ book, bookId });
+      }
     });
-    console.log("Snapshot data in loadBooks after potential purchase:", snapshot.val());
-    console.log("allBooks in loadBooks after potential purchase:", allBooks);
-    renderBooks(allBooks); // Initial render
+
+    console.log("Filtered active books in loadBooks:", allBooks);
+    renderBooks(allBooks); // Render only active books
   }, (error) => {
     console.error('Error loading books:', error);
   });
 }
+
 
 // 🔍 Add search functionality
 document.addEventListener('DOMContentLoaded', () => {
@@ -204,7 +210,8 @@ async function borrowBook(book, originalBookId) {
       ...book,
       borrowedBy: userId,
       originalBookId: originalBookId,
-      borrowedAt: Date.now()
+      borrowedAt: Date.now(),
+      returned: false
     };
 
     await set(newBorrowRef, borrowedBook);
@@ -457,39 +464,66 @@ function loadBorrowedBooks() {
 }
 
 function showModalBorrow(book, bookId = null) {
-    const modal = document.getElementById('bookModal');
-    document.getElementById('modalTitle').textContent = book.title;
-    document.getElementById('modalAuthor').textContent = book.author;
-    document.getElementById('modalImage').src = book.imageUrl;
-    document.getElementById('modalImage').alt = book.title;
-    document.getElementById('modalDescription').textContent = book.description || 'No description available.';
-    document.getElementById('modalPrice').textContent = parseFloat(book.price).toFixed(2);
-    document.getElementById('modalAvailability').textContent = book.available ? 'Available' : 'Not Available';
+  const modal = document.getElementById('bookModal');
+  const adminActions = document.getElementById('adminActions');
 
-    modal.classList.remove('hidden'); // Show the modal
+  document.getElementById('modalTitle').textContent = book.title;
+  document.getElementById('modalAuthor').textContent = book.author;
+  document.getElementById('modalImage').src = book.imageUrl;
+  document.getElementById('modalImage').alt = book.title;
+  document.getElementById('modalDescription').textContent = book.description || 'No description available.';
+  document.getElementById('modalPrice').textContent = parseFloat(book.price).toFixed(2);
+  document.getElementById('modalAvailability').textContent = book.available ? 'Available' : 'Not Available';
 
+  // Hide admin actions by default
+  if (adminActions) adminActions.style.display = 'none';
 
-    document.getElementById('borrowBtn').onclick = () => {
-        borrowBook(book, bookId);
-        modal.classList.add('hidden');
-    };
-
-    document.getElementById('buyBtn').onclick = () => {
-        buyBook(book, bookId);
-        modal.classList.add('hidden');
-    };
-
-
-    const closeModal = () => modal.classList.add('hidden');
-
-    window.onclick = (event) => {
-        if (event.target === modal) {
-            closeModal();
+  // Check admin status
+  const userId = localStorage.getItem('loggedInUserId');
+  if (userId) {
+    const userRef = doc(db, "users", userId);
+    getDoc(userRef).then((docSnap) => {
+      if (docSnap.exists() && docSnap.data().admin) {
+        // Show admin actions if admin
+        if (adminActions) {
+          adminActions.style.display = 'block';
+          const deleteBtn = document.getElementById('deleteBtn');
+          if (deleteBtn) {
+            deleteBtn.onclick = () => {
+              deleteBook(bookId);
+              modal.classList.add('hidden');
+            };
+          }
         }
-    };
+      }
+    }).catch((error) => {
+      console.error('Error checking admin status:', error);
+    });
+  }
 
-    document.getElementById('cancelBtn').onclick = closeModal;
+  modal.classList.remove('hidden'); // Show modal
+
+  document.getElementById('borrowBtn').onclick = () => {
+    borrowBook(book, bookId);
+    modal.classList.add('hidden');
+  };
+
+  document.getElementById('buyBtn').onclick = () => {
+    buyBook(book, bookId);
+    modal.classList.add('hidden');
+  };
+
+  const closeModal = () => modal.classList.add('hidden');
+
+  window.onclick = (event) => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  };
+
+  document.getElementById('cancelBtn').onclick = closeModal;
 }
+
 
 function showModalReturn(book, bookId = null) {
     const modal = document.getElementById('bookModal');
@@ -517,6 +551,11 @@ function showModalReturn(book, bookId = null) {
     buyBook(book, bookId);
     modal.classList.add('hidden');
     };
+
+    document.getElementById('returnBtn').onclick = () =>{
+      returnBook(bookId);
+      modal.classList.add('hidden');
+    }
 }
 
 let allBooks = []; // Global variable to store all books
@@ -547,84 +586,42 @@ function renderBooks(filteredBooks) {
   });
 }
 
-// function loadBorrowedBooksTable() {
-//     const db = getDatabase();
-//     const borrowedRef = ref(db, 'borrowed');
-//     const purchasedRef = ref(db, 'purchased');
-//     const userId = localStorage.getItem('loggedInUserId');
+async function deleteBook(bookId) {
+  const db = getDatabase();
+  const bookRef = ref(db, `books/${bookId}`);
 
-//     if (!userId) {
-//         showMessage('User not logged in. Please sign in.', 'bookMessage');
-//         return;
-//     }
+  try {
+    await set(bookRef, {
+      ...allBooks.find(b => b.bookId === bookId).book,
+      active: false
+    });
+    showMessage('Book deleted successfully.', 'bookMessage', 'success');
+  } catch (error) {
+    console.error('Error deleting book:', error);
+    showMessage('Failed to delete book.', 'bookMessage', 'error');
+  }
+}
 
-//     const tableBody = document.getElementById('borrowedBooksTableBody');
-//     if (!tableBody) return;
+async function returnBook(bookId) {
+  const db = getDatabase();
 
-//     tableBody.innerHTML = ''; // Clear the table
+  try {
+    // Set book as available again
+    const bookAvailableRef = ref(db, `books/${bookId}/available`);
+    await set(bookAvailableRef, true);
 
-//     const transactions = []; // Array to hold all transactions
+    // Mark borrowed entry as returned
+    const borrowedRef = ref(db, `borrowed/${bookId}/returned`);
+    await set(borrowedRef, true);
 
-//     // --- Load Borrowed Books ---
-//     onValue(borrowedRef, (borrowedSnapshot) => {
-//         borrowedSnapshot.forEach((borrowedChildSnapshot) => {
-//             const borrowed = borrowedChildSnapshot.val();
-//             if (borrowed.borrowedBy === userId) {
-//                 transactions.push({
-//                     title: borrowed.title,
-//                     author: borrowed.author,
-//                     imageUrl: borrowed.imageUrl,
-//                     price: borrowed.price,
-//                     transactionDate: borrowed.borrowedAt,
-//                     type: 'Borrowed',
-//                 });
-//             }
-//         });
+    showMessage('Book returned successfully!', 'bookMessage', 'success');
 
-//         // --- Load Purchased Books ---
-//         onValue(purchasedRef, (purchasedSnapshot) => {
-//             purchasedSnapshot.forEach((purchasedChildSnapshot) => {
-//                 const purchased = purchasedChildSnapshot.val();
-//                 if (purchased.purchasedBy === userId) {
-//                     transactions.push({
-//                         title: purchased.title,
-//                         author: purchased.author,
-//                         imageUrl: purchased.imageUrl,
-//                         price: purchased.price,
-//                         transactionDate: purchased.purchasedAt,
-//                         type: 'Purchased',
-//                     });
-//                 }
-//             });
-
-//             // --- Sort Transactions by Date ---
-//             transactions.sort((a, b) => b.transactionDate - a.transactionDate); // Changed sort order
-
-//             if (transactions.length === 0) {
-//                 tableBody.innerHTML = '<tr><td colspan="6">No borrowed or purchased books.</td></tr>';
-//             } else {
-//                 // --- Render Sorted Transactions ---
-//                 transactions.forEach((transaction) => {
-//                     const row = document.createElement('tr');
-//                     row.innerHTML = `
-//                         <td>${transaction.title}</td>
-//                         <td>${transaction.author}</td>
-//                         <td><img src="${transaction.imageUrl}" alt="${transaction.title}" width="50" height="75" onerror="this.style.display='none';" /></td>
-//                         <td>₱${parseFloat(transaction.price).toFixed(2)}</td>
-//                         <td>${new Date(transaction.transactionDate).toLocaleString()}</td>
-//                         <td>${transaction.type}</td>
-//                     `;
-//                     tableBody.appendChild(row);
-//                 });
-//             }
-//         }, (error) => {
-//             console.error('Error loading purchased books:', error);
-//         });
-//     }, (error) => {
-//         console.error('Error loading borrowed books:', error);
-//     });
-// }
-
+    // Optionally, you can refresh the book list or update the UI here
+  } catch (error) {
+    console.error("Error returning book:", error);
+    showMessage(`Failed to return book: ${error.message}`, 'bookMessage', 'error');
+  }
+}
 
 
 export { addBook, loadBooks, loadBorrowedBooks, loadBorrowedBooksTable, buyBook };
