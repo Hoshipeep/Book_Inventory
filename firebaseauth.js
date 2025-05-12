@@ -1,7 +1,7 @@
 import { app, auth, db } from './firebaseconfig.js';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { setDoc, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+import { getDatabase, ref, set, push, onValue, get, remove, update} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
 
 function showMessage(message, divId, type = "success") {
@@ -463,10 +463,14 @@ function loadBorrowedBooks() {
   });
 }
 
+
+
 function showModalBorrow(book, bookId = null) {
   const modal = document.getElementById('bookModal');
   const adminActions = document.getElementById('adminActions');
+  const updateForm = document.getElementById('updateForm');
 
+  // Populate modal
   document.getElementById('modalTitle').textContent = book.title;
   document.getElementById('modalAuthor').textContent = book.author;
   document.getElementById('modalImage').src = book.imageUrl;
@@ -475,33 +479,9 @@ function showModalBorrow(book, bookId = null) {
   document.getElementById('modalPrice').textContent = parseFloat(book.price).toFixed(2);
   document.getElementById('modalAvailability').textContent = book.available ? 'Available' : 'Not Available';
 
-  // Hide admin actions by default
+  // Hide admin section initially
   if (adminActions) adminActions.style.display = 'none';
-
-  // Check admin status
-  const userId = localStorage.getItem('loggedInUserId');
-  if (userId) {
-    const userRef = doc(db, "users", userId);
-    getDoc(userRef).then((docSnap) => {
-      if (docSnap.exists() && docSnap.data().admin) {
-        // Show admin actions if admin
-        if (adminActions) {
-          adminActions.style.display = 'block';
-          const deleteBtn = document.getElementById('deleteBtn');
-          if (deleteBtn) {
-            deleteBtn.onclick = () => {
-              deleteBook(bookId);
-              modal.classList.add('hidden');
-            };
-          }
-        }
-      }
-    }).catch((error) => {
-      console.error('Error checking admin status:', error);
-    });
-  }
-
-  modal.classList.remove('hidden'); // Show modal
+  if (updateForm) updateForm.classList.add('hidden');
 
   document.getElementById('borrowBtn').onclick = () => {
     borrowBook(book, bookId);
@@ -513,6 +493,132 @@ function showModalBorrow(book, bookId = null) {
     modal.classList.add('hidden');
   };
 
+  // Cancel modal
+  document.getElementById('cancelBtn').onclick = () => {
+    modal.classList.add('hidden');
+    updateForm?.classList.add('hidden');
+  };
+
+  // Admin privileges
+  const userId = localStorage.getItem('loggedInUserId');
+  if (userId) {
+    const userRef = doc(db, "users", userId);
+    getDoc(userRef).then((docSnap) => {
+      if (docSnap.exists() && docSnap.data().admin) {
+        adminActions.style.display = 'block';
+
+        document.getElementById('deleteBtn').onclick = () => {
+          alert('Book deleted (implement deleteBook).');
+          modal.classList.add('hidden');
+        };
+
+        document.getElementById('updateBtn').onclick = () => {
+          console.log("ID:", bookId, book.title);
+          // Show update form
+          updateForm.classList.remove('hidden');
+
+          // Populate form fields
+          document.getElementById('updateTitle').value = book.title;
+          document.getElementById('updateAuthor').value = book.author;
+          document.getElementById('updateDescription').value = book.description || '';
+          document.getElementById('updateImage').value = book.imageUrl;
+          document.getElementById('updatePrice').value = parseFloat(book.price).toFixed(2);
+          document.getElementById('updateAvailability').value = book.available ? "true" : "false";
+
+          document.getElementById('submitUpdateBtn').onclick = () => {
+            updateBook(bookId); // Call the updateBook function
+          };
+
+          document.getElementById('cancelUpdateBtn').onclick = () => {
+            updateForm.classList.add('hidden');
+          };
+        };
+      }
+    }).catch((error) => {
+      console.error('Error checking admin status:', error);
+    });
+  }
+
+  modal.classList.remove('hidden');
+}
+
+
+// function showModalBorrow(book, bookId = null) {
+//   const modal = document.getElementById('bookModal');
+//   const adminActions = document.getElementById('adminActions');
+
+//   document.getElementById('modalTitle').textContent = book.title;
+//   document.getElementById('modalAuthor').textContent = book.author;
+//   document.getElementById('modalImage').src = book.imageUrl;
+//   document.getElementById('modalImage').alt = book.title;
+//   document.getElementById('modalDescription').textContent = book.description || 'No description available.';
+//   document.getElementById('modalPrice').textContent = parseFloat(book.price).toFixed(2);
+//   document.getElementById('modalAvailability').textContent = book.available ? 'Available' : 'Not Available';
+
+//   // Hide admin actions by default
+//   if (adminActions) adminActions.style.display = 'none';
+
+//   // Check admin status
+//   const userId = localStorage.getItem('loggedInUserId');
+//   if (userId) {
+//     const userRef = doc(db, "users", userId);
+//     getDoc(userRef).then((docSnap) => {
+//       if (docSnap.exists() && docSnap.data().admin) {
+//         // Show admin actions if admin
+//         if (adminActions) {
+//           adminActions.style.display = 'block';
+//           const deleteBtn = document.getElementById('deleteBtn');
+//           if (deleteBtn) {
+//             deleteBtn.onclick = () => {
+//               deleteBook(bookId);
+//               modal.classList.add('hidden');
+//             };
+//           }
+//         }
+//       }
+//     }).catch((error) => {
+//       console.error('Error checking admin status:', error);
+//     });
+//   }
+
+//   modal.classList.remove('hidden'); // Show modal
+
+//   document.getElementById('borrowBtn').onclick = () => {
+//     borrowBook(book, bookId);
+//     modal.classList.add('hidden');
+//   };
+
+//   document.getElementById('buyBtn').onclick = () => {
+//     buyBook(book, bookId);
+//     modal.classList.add('hidden');
+//   };
+
+//   const closeModal = () => modal.classList.add('hidden');
+
+//   window.onclick = (event) => {
+//     if (event.target === modal) {
+//       closeModal();
+//     }
+//   };
+
+//   document.getElementById('cancelBtn').onclick = closeModal;
+// }
+
+function showModalReturn(book, borrowedBookId = null) {
+  const modal = document.getElementById('bookModal');
+  
+  // Set the modal content with book details
+  document.getElementById('modalTitle').textContent = book.title;
+  document.getElementById('modalAuthor').textContent = book.author;
+  document.getElementById('modalImage').src = book.imageUrl;
+  document.getElementById('modalImage').alt = book.title;
+  document.getElementById('modalDescription').textContent = book.description || 'No description available.';
+  document.getElementById('modalPrice').textContent = parseFloat(book.price).toFixed(2);
+  document.getElementById('modalAvailability').textContent = book.available ? 'Available' : 'Not Available';
+
+  modal.classList.remove('hidden'); // Show the modal
+
+  // Close the modal when clicking outside the modal content area
   const closeModal = () => modal.classList.add('hidden');
 
   window.onclick = (event) => {
@@ -521,42 +627,64 @@ function showModalBorrow(book, bookId = null) {
     }
   };
 
+  // Close the modal when cancel button is clicked
   document.getElementById('cancelBtn').onclick = closeModal;
-}
 
-
-function showModalReturn(book, bookId = null) {
-    const modal = document.getElementById('bookModal');
-    document.getElementById('modalTitle').textContent = book.title;
-    document.getElementById('modalAuthor').textContent = book.author;
-    document.getElementById('modalImage').src = book.imageUrl;
-    document.getElementById('modalImage').alt = book.title;
-    document.getElementById('modalDescription').textContent = book.description || 'No description available.';
-    document.getElementById('modalPrice').textContent = parseFloat(book.price).toFixed(2);
-    document.getElementById('modalAvailability').textContent = book.available ? 'Available' : 'Not Available';
-
-    modal.classList.remove('hidden'); // Show the modal
-
-    const closeModal = () => modal.classList.add('hidden');
-
-    window.onclick = (event) => {
-        if (event.target === modal) {
-            closeModal();
-        }
-    };
-
-    document.getElementById('cancelBtn').onclick = closeModal;
-
-    document.getElementById('buyBtn').onclick = () => {
-    buyBook(book, bookId);
+  // Handle buying the book
+  document.getElementById('buyBtn').onclick = () => {
+    buyBook(book, borrowedBookId);
     modal.classList.add('hidden');
-    };
+  };
 
-    document.getElementById('returnBtn').onclick = () =>{
-      returnBook(bookId);
-      modal.classList.add('hidden');
+  // Handle returning the book
+  document.getElementById('returnBtn').onclick = () => {
+    if (borrowedBookId) {
+      returnBook(borrowedBookId); // Pass borrowedBookId for return
+    } else {
+      alert("No borrowed book found!");
     }
+    modal.classList.add('hidden');
+    console.log("Return button clicked");
+  };
 }
+
+
+// Function to update the book in the database
+function updateBook(bookId) {
+  const updatedTitle = document.getElementById('updateTitle').value;
+  const updatedAuthor = document.getElementById('updateAuthor').value;
+  const updatedDescription = document.getElementById('updateDescription').value;
+  const updatedImage = document.getElementById('updateImage').value;
+  const updatedPrice = parseFloat(document.getElementById('updatePrice').value);
+  const updatedAvailability = document.getElementById('updateAvailability').value === 'true';
+
+  const bookRef = doc(db, "books", bookId);
+
+  // Update the book details in the database
+  updateDoc(bookRef, {
+    title: updatedTitle,
+    author: updatedAuthor,
+    description: updatedDescription,
+    imageUrl: updatedImage,
+    price: updatedPrice,
+    available: updatedAvailability,
+  })
+  .then(() => {
+    alert('Book updated successfully!');
+    // Hide the update form after success
+    document.getElementById('updateForm').classList.add('hidden');
+    // Optionally, reload the page or update the UI
+    location.reload();  // Or you can update the book details on the page without reloading
+  })
+  .catch((error) => {
+    console.error('Error updating book:', error);
+  });
+}
+
+
+
+
+
 
 let allBooks = []; // Global variable to store all books
 
@@ -602,26 +730,50 @@ async function deleteBook(bookId) {
   }
 }
 
-async function returnBook(bookId) {
-  const db = getDatabase();
-
+async function returnBook(borrowedBookId) {
   try {
-    // Set book as available again
-    const bookAvailableRef = ref(db, `books/${bookId}/available`);
-    await set(bookAvailableRef, true);
+    const db = getDatabase();
 
-    // Mark borrowed entry as returned
-    const borrowedRef = ref(db, `borrowed/${bookId}/returned`);
-    await set(borrowedRef, true);
+    // Get the borrowed book entry
+    const borrowedRef = ref(db, 'borrowed/' + borrowedBookId);
+    const borrowedSnapshot = await get(borrowedRef);
+   
+    if (!borrowedSnapshot.exists()) {
+      throw new Error('Borrowed book not found.');
+    }
 
-    showMessage('Book returned successfully!', 'bookMessage', 'success');
+    const borrowedBook = borrowedSnapshot.val();
+    const originalBookId = borrowedBook.originalBookId;
 
-    // Optionally, you can refresh the book list or update the UI here
+    // Delete the borrowed entry
+    await remove(borrowedRef);
+
+    // Update the original book's availability
+    const bookPath = 'books/' + originalBookId;
+    console.log('Updating book at path:', bookPath);
+
+    const bookRef = ref(db, bookPath);
+    const bookSnapshot = await get(bookRef);
+
+    if (!bookSnapshot.exists()) {
+      throw new Error('Original book not found.');
+    }
+
+    await update(bookRef, { available: true });
+
+    alert('Book returned successfully and availability updated!');
+    location.reload();
   } catch (error) {
-    console.error("Error returning book:", error);
-    showMessage(`Failed to return book: ${error.message}`, 'bookMessage', 'error');
+    console.error('Error:', error);
+    alert('Could not return the book.');
   }
 }
+
+
+
+
+
+
 
 
 export { addBook, loadBooks, loadBorrowedBooks, loadBorrowedBooksTable, buyBook };

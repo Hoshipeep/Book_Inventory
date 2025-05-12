@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="main.css">
     <script type="module" src="profile.js"></script>
     <script type="module" src="navbar.js"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=AXNeRb022gCmfsr7YAOxJVxnUiEHHZFP-WGP5dnQ_H4GJ3dI8RL5jKfSOkIZogF5y8N6Vft8nDMGb2zT"></script>
 
     
 </head>
@@ -33,6 +34,30 @@
       <button id="depositButton">Deposit</button>
     </div>
 
+  <div class="paypal-wrapper">
+    <div id="paypal-button-container"></div>
+  </div>
+
+
+
+<script>
+  paypal.Buttons({
+    createOrder: function(data, actions) {
+      return actions.order.create({
+        purchase_units: [{
+          amount: {
+            value: '200'
+          }
+        }]
+      });
+    },
+    onApprove: function(data, actions) {
+      return actions.order.capture().then(function(details) {
+        alert('Transaction completed by ' + details.payer.name.given_name);
+      });
+    }
+  }).render('#paypal-button-container');
+</script>
 
     <br>
     <br>
@@ -69,5 +94,8 @@
     </div>
   </div>
   
+
+
+
 </body>
 </html>
