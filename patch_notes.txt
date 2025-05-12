@@ -49,3 +49,9 @@
 5/12/2025 - 5:56AM Carl
 -Modified: users (added Balance)
 -Added Transactions Table (Only from borrow collection)
+
+5/12/2025 - 5:56AM Aj
+-Modified: books.html, borrowed.html, firebaseauth.js
+-Modified showmodal to showmodalReturned and made showmodalBorrowed for books and borrowed
+-Added working see more modal in books.html and borrowed.html
+-Added working search bar

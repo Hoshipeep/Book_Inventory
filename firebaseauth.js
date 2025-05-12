@@ -126,37 +126,34 @@ async function addBook(title, author, imageUrl, description, price) {
 function loadBooks() {
   const db = getDatabase();
   const booksRef = ref(db, 'books');
-  
+
   onValue(booksRef, (snapshot) => {
-    const bookList = document.getElementById('booklist');
-    bookList.innerHTML = '';
-  
+    allBooks = []; // Clear before updating
+
     snapshot.forEach((bookSnapshot) => {
       const book = bookSnapshot.val();
       const bookId = bookSnapshot.key;
-  
-      const bookListItem = document.createElement('li');
-      bookListItem.innerHTML = `
-        <h3>${book.title}</h3>
-        <p>by ${book.author}</p>
-        <div class="book-image">
-          <img src="${book.imageUrl}" alt="${book.title}">
-        </div>
-        <p>₱${parseFloat(book.price).toFixed(2)}</p>
-        <button class="see-more-btn">See More</button>
-      `;
-  
-      const button = bookListItem.querySelector('.see-more-btn');
-      button.addEventListener('click', () => {
-        showModal(book, bookId);
-      });
-  
-      bookList.appendChild(bookListItem);
+      allBooks.push({ book, bookId });
     });
+
+    renderBooks(allBooks); // Initial render
   }, (error) => {
     console.error('Error loading books:', error);
   });
-}  
+}
+
+// 🔍 Add search functionality
+document.addEventListener('DOMContentLoaded', () => {
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('input', () => {
+    const query = searchInput.value.trim().toLowerCase();
+    const filtered = allBooks.filter(({ book }) => 
+      book.title.toLowerCase().includes(query) ||
+      book.author.toLowerCase().includes(query)
+    );
+    renderBooks(filtered);
+  });
+});
 
 async function borrowBook(book, originalBookId) {
   const db = getDatabase();
@@ -232,13 +229,35 @@ function loadBorrowedBooks() {
 
   onValue(booksRef, (snapshot) => {
     const bookList = document.getElementById('booklist');
-    if (!bookList) return;
+    const noResults = document.getElementById('noResults');
+    const searchInput = document.getElementById('searchInput');
+    if (!bookList || !searchInput) return;
 
-    bookList.innerHTML = '';
-
+    const allBooks = [];
     snapshot.forEach((bookSnapshot) => {
       const book = bookSnapshot.val();
+      const bookId = bookSnapshot.key;
       if (book.borrowedBy === userId) {
+        allBooks.push({ book, bookId });
+      }
+    });
+
+    const renderFilteredBooks = () => {
+      const query = searchInput.value.toLowerCase();
+      const filteredBooks = allBooks.filter(({ book }) =>
+        book.title.toLowerCase().includes(query) ||
+        book.author.toLowerCase().includes(query)
+      );
+
+      bookList.innerHTML = '';
+      if (filteredBooks.length === 0) {
+        noResults.classList.remove('hidden');
+        return;
+      } else {
+        noResults.classList.add('hidden');
+      }
+
+      filteredBooks.forEach(({ book, bookId }) => {
         const bookListItem = `
           <li>
             <h3>${book.title}</h3>
@@ -248,45 +267,95 @@ function loadBorrowedBooks() {
                 <img src="${book.imageUrl}" alt="${book.title}" onerror="this.style.display='none';">
               </div>` : ''}
             <p>₱${parseFloat(book.price).toFixed(2)}</p>
-            <button>See More</button>
+            <button class="see-more-btn" data-book-id="${bookId}">See More</button>
           </li>
         `;
         bookList.insertAdjacentHTML('beforeend', bookListItem);
-      }
-    });
+      });
 
+      // Attach modal logic
+      document.querySelectorAll('.see-more-btn').forEach(button => {
+        button.addEventListener('click', () => {
+          const bookId = button.getAttribute('data-book-id');
+          const book = snapshot.val()[bookId];
+          showModalReturn(book, bookId);
+        });
+      });
+    };
+
+    // Initial render
+    renderFilteredBooks();
+
+    // Re-filter whenever user types
+    searchInput.addEventListener('input', renderFilteredBooks);
   }, (error) => {
     console.error('Error loading user\'s books:', error);
   });
 }
 
 
-function showModal(book, bookId = null) {
-  const modal = document.getElementById('bookModal');
-  document.getElementById('modalTitle').textContent = book.title;
-  document.getElementById('modalAuthor').textContent = book.author;
-  document.getElementById('modalImage').src = book.imageUrl;
-  document.getElementById('modalImage').alt = book.title;
-  document.getElementById('modalDescription').textContent = book.description || 'No description available.';
-  document.getElementById('modalPrice').textContent = parseFloat(book.price).toFixed(2);
-  document.getElementById('modalAvailability').textContent = book.available ? 'Available' : 'Not Available';
 
-  modal.classList.remove('hidden');
 
-  document.getElementById('borrowBtn').onclick = () => {
-    borrowBook(book, bookId);
-    modal.classList.add('hidden');
-  };
+function showModalBorrow(book, bookId = null) {
+    const modal = document.getElementById('bookModal');
+    document.getElementById('modalTitle').textContent = book.title;
+    document.getElementById('modalAuthor').textContent = book.author;
+    document.getElementById('modalImage').src = book.imageUrl;
+    document.getElementById('modalImage').alt = book.title;
+    document.getElementById('modalDescription').textContent = book.description || 'No description available.';
+    document.getElementById('modalPrice').textContent = parseFloat(book.price).toFixed(2);
+    document.getElementById('modalAvailability').textContent = book.available ? 'Available' : 'Not Available';
 
-  const closeModal = () => modal.classList.add('hidden');
+    modal.classList.remove('hidden'); // Show the modal
 
-  window.onclick = (event) => {
-    if (event.target === modal) {
-      closeModal();
-    }
-  };
 
-  document.getElementById('cancelBtn').onclick = closeModal;
+    document.getElementById('borrowBtn').onclick = () => {
+        borrowBook(book, bookId);
+        modal.classList.add('hidden');
+    };
+
+
+    const closeModal = () => modal.classList.add('hidden');
+
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            closeModal();
+        }
+    };
+
+    document.getElementById('cancelBtn').onclick = closeModal;
+}
+
+function showModalReturn(book, bookId = null) {
+    const modal = document.getElementById('bookModal');
+    document.getElementById('modalTitle').textContent = book.title;
+    document.getElementById('modalAuthor').textContent = book.author;
+    document.getElementById('modalImage').src = book.imageUrl;
+    document.getElementById('modalImage').alt = book.title;
+    document.getElementById('modalDescription').textContent = book.description || 'No description available.';
+    document.getElementById('modalPrice').textContent = parseFloat(book.price).toFixed(2);
+    document.getElementById('modalAvailability').textContent = book.available ? 'Available' : 'Not Available';
+
+    modal.classList.remove('hidden'); // Show the modal
+
+
+
+    // Handle Return button click
+    // document.getElementById('returnBtn').onclick = () => {
+    //     returnBook(book, bookId);  // Function to handle book return
+    //     modal.classList.add('hidden');
+    // };
+
+
+    const closeModal = () => modal.classList.add('hidden');
+
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            closeModal();
+        }
+    };
+
+    document.getElementById('cancelBtn').onclick = closeModal;
 }
 
 function loadBorrowedBooksTable() {
@@ -316,6 +385,7 @@ function loadBorrowedBooksTable() {
           <td><img src="${borrowed.imageUrl}" alt="${borrowed.title}" width="50" height="75" onerror="this.style.display='none';" /></td>
           <td>₱${parseFloat(borrowed.price).toFixed(2)}</td>
           <td>${new Date(borrowed.borrowedAt).toLocaleString()}</td>
+          <td><button class="see-more-btn" onclick="showModalReturn(${JSON.stringify(borrowed)})">See More</button></td>
         `;
 
         tableBody.appendChild(row);
@@ -326,6 +396,32 @@ function loadBorrowedBooksTable() {
   });
 }
 
+let allBooks = []; // Global variable to store all books
+
+function renderBooks(filteredBooks) {
+  const bookList = document.getElementById('booklist');
+  bookList.innerHTML = '';
+
+  filteredBooks.forEach(({ book, bookId }) => {
+    const bookListItem = document.createElement('li');
+    bookListItem.innerHTML = `
+      <h3>${book.title}</h3>
+      <p>by ${book.author}</p>
+      <div class="book-image">
+        <img src="${book.imageUrl}" alt="${book.title}">
+      </div>
+      <p>₱${parseFloat(book.price).toFixed(2)}</p>
+      <button class="see-more-btn">See More</button>
+    `;
+
+    const button = bookListItem.querySelector('.see-more-btn');
+    button.addEventListener('click', () => {
+      showModalBorrow(book, bookId);
+    });
+
+    bookList.appendChild(bookListItem);
+  });
+}
 
 
 
