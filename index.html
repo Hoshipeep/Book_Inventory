@@ -47,15 +47,26 @@
               <th>Image</th>
               <th>Price</th>
               <th>Transaction Date & Time</th>
-              <!-- <th>Actions</th> -->
+              <th>Transaction Type</th>
             </tr>
           </thead>
           <tbody id="borrowedBooksTableBody">
-            <!-- Rows will be populated dynamically -->
+            
           </tbody>
       </table>
     </div>
 
+  </div>
+
+  <div id="depositModal" class="modal hidden">
+    <div class="deposit-modal">
+      <h2>Deposit Balance</h2>
+      <input type="number" id="depositAmount" placeholder="Enter amount (₱)" min="1" />
+      <div class="deposit-actions">
+        <button id="submitDeposit">Submit</buttonS>
+        <button id="cancelDeposit">Cancel</button>
+      </div>
+    </div>
   </div>
   
 </body>

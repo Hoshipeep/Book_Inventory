@@ -9,6 +9,11 @@ const usernameInput = document.getElementById("username");
 const passwordInput = document.getElementById("newPassword");
 const profileForm = document.getElementById("profileForm");
 const messageDiv = document.getElementById("profileMessage");
+const depositBtn = document.getElementById("depositButton");
+const depositModal = document.getElementById("depositModal");
+const submitDeposit = document.getElementById("submitDeposit");
+const cancelDeposit = document.getElementById("cancelDeposit");
+const depositAmountInput = document.getElementById("depositAmount");
 
 let currentUser = null;
 
@@ -81,6 +86,41 @@ profileForm.addEventListener("submit", async (e) => {
   } catch (error) {
     console.error(error);
     showMessage(error.message, "error");
+  }
+});
+
+depositBtn.addEventListener("click", () => {
+  depositModal.classList.remove("hidden");
+});
+
+cancelDeposit.addEventListener("click", () => {
+  depositModal.classList.add("hidden");
+  depositAmountInput.value = "";
+});
+
+submitDeposit.addEventListener("click", async () => {
+  const amount = parseFloat(depositAmountInput.value);
+  if (isNaN(amount) || amount <= 0) {
+    alert("Please enter a valid amount.");
+    return;
+  }
+
+  try {
+    const userDocRef = doc(db, "users", currentUser.uid);
+    const userDocSnap = await getDoc(userDocRef);
+    const currentBalance = userDocSnap.exists() ? userDocSnap.data().balance || 0 : 0;
+    const newBalance = currentBalance + amount;
+
+    await updateDoc(userDocRef, { balance: newBalance });
+
+    document.getElementById("userBalance").textContent = `₱${newBalance.toFixed(2)}`;
+    showMessage("Deposit successful!", "success");
+
+  } catch (error) {
+    showMessage("Failed to deposit: " + error.message, "error");
+  } finally {
+    depositModal.classList.add("hidden");
+    depositAmountInput.value = "";
   }
 });
 

@@ -1,6 +1,6 @@
 import { app, auth, db } from './firebaseconfig.js';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { setDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { setDoc, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
 
@@ -78,7 +78,6 @@ if (signIn) {
 
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
-        // showMessage('Login is successful', 'signInMessage', 'success');
         const user = userCredential.user;
         localStorage.setItem('loggedInUserId', user.uid);
         window.location.href = 'books.html';
@@ -135,7 +134,8 @@ function loadBooks() {
       const bookId = bookSnapshot.key;
       allBooks.push({ book, bookId });
     });
-
+    console.log("Snapshot data in loadBooks after potential purchase:", snapshot.val());
+    console.log("allBooks in loadBooks after potential purchase:", allBooks);
     renderBooks(allBooks); // Initial render
   }, (error) => {
     console.error('Error loading books:', error);
@@ -217,6 +217,169 @@ async function borrowBook(book, originalBookId) {
 }
 
 
+async function buyBook(book, bookId) {
+    const userId = localStorage.getItem('loggedInUserId');
+
+    if (!userId) {
+        showMessage('You must be signed in to buy books.', 'bookMessage', 'error');
+        return;
+    }
+
+    const purchasedRef = ref(getDatabase(), 'purchased');
+    // Use bookId as the reference for books (whether borrowed or not)
+    const originalBookRef = ref(getDatabase(), `books/${bookId}`);
+    // Always use the passed bookId to delete from the borrowed collection (if it exists)
+    const borrowedBookRef = ref(getDatabase(), `borrowed/${bookId}`);
+
+    try {
+        // ✅ Fetch user balance from Firestore
+        const userDocRef = doc(db, "users", userId);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (!userDocSnap.exists()) {
+            showMessage('User data not found.', 'bookMessage', 'error');
+            return;
+        }
+
+        const currentBalance = parseFloat(userDocSnap.data().balance);
+        const bookPrice = parseFloat(book.price);
+
+        if (isNaN(currentBalance) || isNaN(bookPrice)) {
+            showMessage('Invalid balance or book price.', 'bookMessage', 'error');
+            return;
+        }
+
+        if (currentBalance < bookPrice) {
+            showMessage('Insufficient balance to buy this book.', 'bookMessage', 'error');
+            return;
+        }
+
+        const updatedBalance = (currentBalance - bookPrice).toFixed(2);
+
+        // ✅ Update balance in Firestore
+        await updateDoc(userDocRef, {
+            balance: parseFloat(updatedBalance)
+        });
+
+        // ✅ Record purchase in Realtime DB
+        const newPurchaseRef = push(purchasedRef);
+        const purchaseData = {
+            ...book,
+            purchasedBy: userId,
+            purchasedAt: Date.now()
+        };
+        await set(newPurchaseRef, purchaseData);
+
+        // ✅ Remove book from books and borrowed
+        await set(originalBookRef, null);
+        // Always attempt to delete from borrowed using the passed bookId
+        await set(borrowedBookRef, null);
+
+        showMessage('Book purchased successfully!', 'bookMessage', 'success');
+        const modal = document.getElementById('bookModal');
+        if (modal) modal.classList.add('hidden');
+
+    } catch (error) {
+        console.error('Error buying book:', error);
+        showMessage(`Failed to buy book: ${error.message}`, 'bookMessage', 'error');
+    }
+}
+
+function loadBorrowedBooksTable() {
+    const db = getDatabase();
+    const borrowedRef = ref(db, 'borrowed');
+    const purchasedRef = ref(db, 'purchased');
+    const userId = localStorage.getItem('loggedInUserId');
+
+    if (!userId) {
+        showMessage('User not logged in. Please sign in.', 'bookMessage');
+        return;
+    }
+
+    const tableBody = document.getElementById('borrowedBooksTableBody');
+    if (!tableBody) return;
+
+    tableBody.innerHTML = ''; // Clear the table
+
+    let borrowedData = [];
+    let purchasedData = [];
+    let borrowedLoaded = false;
+    let purchasedLoaded = false;
+
+    const checkAndRender = () => {
+        if (borrowedLoaded && purchasedLoaded) {
+            const transactions = [...borrowedData, ...purchasedData];
+            transactions.sort((a, b) => b.transactionDate - a.transactionDate);
+
+            if (transactions.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6">No borrowed or purchased books.</td></tr>';
+            } else {
+                transactions.forEach((transaction) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${transaction.title}</td>
+                        <td>${transaction.author}</td>
+                        <td><img src="${transaction.imageUrl}" alt="${transaction.title}" width="50" height="75" onerror="this.style.display='none';" /></td>
+                        <td>₱${parseFloat(transaction.price).toFixed(2)}</td>
+                        <td>${new Date(transaction.transactionDate).toLocaleString()}</td>
+                        <td>${transaction.type}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+        }
+    };
+
+    // --- Load Borrowed Books ---
+    onValue(borrowedRef, (borrowedSnapshot) => {
+        borrowedData = [];
+        borrowedSnapshot.forEach((borrowedChildSnapshot) => {
+            const borrowed = borrowedChildSnapshot.val();
+            if (borrowed.borrowedBy === userId) {
+                borrowedData.push({
+                    title: borrowed.title,
+                    author: borrowed.author,
+                    imageUrl: borrowed.imageUrl,
+                    price: borrowed.price,
+                    transactionDate: borrowed.borrowedAt,
+                    type: 'Borrowed',
+                });
+            }
+        });
+        borrowedLoaded = true;
+        checkAndRender();
+    }, (error) => {
+        console.error('Error loading borrowed books:', error);
+        borrowedLoaded = true; // Ensure checkAndRender is called even on error to prevent hang
+        checkAndRender();
+    });
+
+    // --- Load Purchased Books ---
+    onValue(purchasedRef, (purchasedSnapshot) => {
+        purchasedData = [];
+        purchasedSnapshot.forEach((purchasedChildSnapshot) => {
+            const purchased = purchasedChildSnapshot.val();
+            if (purchased.purchasedBy === userId) {
+                purchasedData.push({
+                    title: purchased.title,
+                    author: purchased.author,
+                    imageUrl: purchased.imageUrl,
+                    price: purchased.price,
+                    transactionDate: purchased.purchasedAt,
+                    type: 'Purchased',
+                });
+            }
+        });
+        purchasedLoaded = true;
+        checkAndRender();
+    }, (error) => {
+        console.error('Error loading purchased books:', error);
+         purchasedLoaded = true;  // Ensure checkAndRender is called even on error
+        checkAndRender();
+    });
+}
+
+
 function loadBorrowedBooks() {
   const db = getDatabase();
   const booksRef = ref(db, 'borrowed');
@@ -293,9 +456,6 @@ function loadBorrowedBooks() {
   });
 }
 
-
-
-
 function showModalBorrow(book, bookId = null) {
     const modal = document.getElementById('bookModal');
     document.getElementById('modalTitle').textContent = book.title;
@@ -311,6 +471,11 @@ function showModalBorrow(book, bookId = null) {
 
     document.getElementById('borrowBtn').onclick = () => {
         borrowBook(book, bookId);
+        modal.classList.add('hidden');
+    };
+
+    document.getElementById('buyBtn').onclick = () => {
+        buyBook(book, bookId);
         modal.classList.add('hidden');
     };
 
@@ -338,15 +503,6 @@ function showModalReturn(book, bookId = null) {
 
     modal.classList.remove('hidden'); // Show the modal
 
-
-
-    // Handle Return button click
-    // document.getElementById('returnBtn').onclick = () => {
-    //     returnBook(book, bookId);  // Function to handle book return
-    //     modal.classList.add('hidden');
-    // };
-
-
     const closeModal = () => modal.classList.add('hidden');
 
     window.onclick = (event) => {
@@ -356,49 +512,17 @@ function showModalReturn(book, bookId = null) {
     };
 
     document.getElementById('cancelBtn').onclick = closeModal;
-}
 
-function loadBorrowedBooksTable() {
-  const db = getDatabase();
-  const borrowedRef = ref(db, 'borrowed');
-  const userId = localStorage.getItem('loggedInUserId');
-
-  if (!userId) {
-    showMessage('User not logged in. Please sign in.', 'bookMessage');
-    return;
-  }
-
-  onValue(borrowedRef, (snapshot) => {
-    const tableBody = document.getElementById('borrowedBooksTableBody');
-    if (!tableBody) return;
-
-    tableBody.innerHTML = '';
-
-    snapshot.forEach((borrowedSnapshot) => {
-      const borrowed = borrowedSnapshot.val();
-      if (borrowed.borrowedBy === userId) {
-        const row = document.createElement('tr');
-
-        row.innerHTML = `
-          <td>${borrowed.title}</td>
-          <td>${borrowed.author}</td>
-          <td><img src="${borrowed.imageUrl}" alt="${borrowed.title}" width="50" height="75" onerror="this.style.display='none';" /></td>
-          <td>₱${parseFloat(borrowed.price).toFixed(2)}</td>
-          <td>${new Date(borrowed.borrowedAt).toLocaleString()}</td>
-          <td><button class="see-more-btn" onclick="showModalReturn(${JSON.stringify(borrowed)})">See More</button></td>
-        `;
-
-        tableBody.appendChild(row);
-      }
-    });
-  }, (error) => {
-    console.error('Error loading borrowed books:', error);
-  });
+    document.getElementById('buyBtn').onclick = () => {
+    buyBook(book, bookId);
+    modal.classList.add('hidden');
+    };
 }
 
 let allBooks = []; // Global variable to store all books
 
 function renderBooks(filteredBooks) {
+  console.log("renderBooks called with:", filteredBooks);
   const bookList = document.getElementById('booklist');
   bookList.innerHTML = '';
 
@@ -423,6 +547,84 @@ function renderBooks(filteredBooks) {
   });
 }
 
+// function loadBorrowedBooksTable() {
+//     const db = getDatabase();
+//     const borrowedRef = ref(db, 'borrowed');
+//     const purchasedRef = ref(db, 'purchased');
+//     const userId = localStorage.getItem('loggedInUserId');
+
+//     if (!userId) {
+//         showMessage('User not logged in. Please sign in.', 'bookMessage');
+//         return;
+//     }
+
+//     const tableBody = document.getElementById('borrowedBooksTableBody');
+//     if (!tableBody) return;
+
+//     tableBody.innerHTML = ''; // Clear the table
+
+//     const transactions = []; // Array to hold all transactions
+
+//     // --- Load Borrowed Books ---
+//     onValue(borrowedRef, (borrowedSnapshot) => {
+//         borrowedSnapshot.forEach((borrowedChildSnapshot) => {
+//             const borrowed = borrowedChildSnapshot.val();
+//             if (borrowed.borrowedBy === userId) {
+//                 transactions.push({
+//                     title: borrowed.title,
+//                     author: borrowed.author,
+//                     imageUrl: borrowed.imageUrl,
+//                     price: borrowed.price,
+//                     transactionDate: borrowed.borrowedAt,
+//                     type: 'Borrowed',
+//                 });
+//             }
+//         });
+
+//         // --- Load Purchased Books ---
+//         onValue(purchasedRef, (purchasedSnapshot) => {
+//             purchasedSnapshot.forEach((purchasedChildSnapshot) => {
+//                 const purchased = purchasedChildSnapshot.val();
+//                 if (purchased.purchasedBy === userId) {
+//                     transactions.push({
+//                         title: purchased.title,
+//                         author: purchased.author,
+//                         imageUrl: purchased.imageUrl,
+//                         price: purchased.price,
+//                         transactionDate: purchased.purchasedAt,
+//                         type: 'Purchased',
+//                     });
+//                 }
+//             });
+
+//             // --- Sort Transactions by Date ---
+//             transactions.sort((a, b) => b.transactionDate - a.transactionDate); // Changed sort order
+
+//             if (transactions.length === 0) {
+//                 tableBody.innerHTML = '<tr><td colspan="6">No borrowed or purchased books.</td></tr>';
+//             } else {
+//                 // --- Render Sorted Transactions ---
+//                 transactions.forEach((transaction) => {
+//                     const row = document.createElement('tr');
+//                     row.innerHTML = `
+//                         <td>${transaction.title}</td>
+//                         <td>${transaction.author}</td>
+//                         <td><img src="${transaction.imageUrl}" alt="${transaction.title}" width="50" height="75" onerror="this.style.display='none';" /></td>
+//                         <td>₱${parseFloat(transaction.price).toFixed(2)}</td>
+//                         <td>${new Date(transaction.transactionDate).toLocaleString()}</td>
+//                         <td>${transaction.type}</td>
+//                     `;
+//                     tableBody.appendChild(row);
+//                 });
+//             }
+//         }, (error) => {
+//             console.error('Error loading purchased books:', error);
+//         });
+//     }, (error) => {
+//         console.error('Error loading borrowed books:', error);
+//     });
+// }
 
 
-export { addBook, loadBooks, loadBorrowedBooks, loadBorrowedBooksTable };
+
+export { addBook, loadBooks, loadBorrowedBooks, loadBorrowedBooksTable, buyBook };
