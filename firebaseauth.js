@@ -1,6 +1,6 @@
 import { app, auth, db } from './firebaseconfig.js';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { setDoc, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { setDoc, doc, getDoc, updateDoc,collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { getDatabase, ref, set, push, onValue, get, remove, update} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
 
@@ -526,7 +526,8 @@ function showModalBorrow(book, bookId = null) {
           document.getElementById('updateAvailability').value = book.available ? "true" : "false";
 
           document.getElementById('submitUpdateBtn').onclick = () => {
-            updateBook(bookId); // Call the updateBook function
+            updateBook(bookId);
+
           };
 
           document.getElementById('cancelUpdateBtn').onclick = () => {
@@ -649,8 +650,11 @@ function showModalReturn(book, borrowedBookId = null) {
 }
 
 
-// Function to update the book in the database
-function updateBook(bookId) {
+
+
+
+
+async function updateBook(bookId) {
   const updatedTitle = document.getElementById('updateTitle').value;
   const updatedAuthor = document.getElementById('updateAuthor').value;
   const updatedDescription = document.getElementById('updateDescription').value;
@@ -658,28 +662,31 @@ function updateBook(bookId) {
   const updatedPrice = parseFloat(document.getElementById('updatePrice').value);
   const updatedAvailability = document.getElementById('updateAvailability').value === 'true';
 
-  const bookRef = doc(db, "books", bookId);
+  try {
+    const db = getDatabase();
+    const bookRef = ref(db, `books/${bookId}`);
 
-  // Update the book details in the database
-  updateDoc(bookRef, {
-    title: updatedTitle,
-    author: updatedAuthor,
-    description: updatedDescription,
-    imageUrl: updatedImage,
-    price: updatedPrice,
-    available: updatedAvailability,
-  })
-  .then(() => {
-    alert('Book updated successfully!');
-    // Hide the update form after success
+    await update(bookRef, {
+      title: updatedTitle,
+      author: updatedAuthor,
+      description: updatedDescription,
+      imageUrl: updatedImage,
+      price: updatedPrice,
+      available: updatedAvailability,
+    });
+
+    alert("Book updated successfully!");
     document.getElementById('updateForm').classList.add('hidden');
-    // Optionally, reload the page or update the UI
-    location.reload();  // Or you can update the book details on the page without reloading
-  })
-  .catch((error) => {
-    console.error('Error updating book:', error);
-  });
+    location.reload();
+  } catch (error) {
+    console.error("Error updating book:", error);
+    alert("An error occurred while updating the book.");
+  }
 }
+
+
+
+
 
 
 
