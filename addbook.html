@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Books</title>
+    <link rel="stylesheet" href="main.css">
+    <script type="module" src="books.js"></script>
+    <script type="module" src="navbar.js"></script>
+
+
+</head>
+<body>
+
+    <div id="navbar-placeholder"></div>
+
+      
+      <div class="container">
+        <h1>Add A New Book...</h1>
+    </div>
+
+      <div class="add-book-form" id="addBookWrapper">
+        <form id="addBookForm">
+            <input type="text" id="title" placeholder="Title" required>
+            <input type="text" id="author" placeholder="Author" required>
+            <input type="text" id="imageUrl" placeholder="Image URL" required>
+            <input type="text" id="description" placeholder="Book Description" required>
+            <input type="number" id="price" placeholder="Price (₱)" min="0" step="0.01" required>
+            <button type="submit">Add Book</button>
+        </form>
+        <div id="bookMessage"></div>
+    </div>
+</body>
+
+
+
+</html>

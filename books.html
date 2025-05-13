@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Books</title>
+  <link rel="stylesheet" href="main.css" />
+  <script type="module" src="books.js"></script>
+  <script type="module" src="navbar.js"></script>
+</head>
+<body>
+
+  <!-- Book Modal -->
+  <div id="bookModal" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="modalTitle"></h2>
+      <p><strong>Author:</strong> <span id="modalAuthor"></span></p>
+      <img id="modalImage" src="" alt="" style="max-width: 100%;" />
+      <p id="modalDescription"></p>
+      <p><strong>Price:</strong> ₱<span id="modalPrice"></span></p>
+      <p><strong>Availability:</strong> <span id="modalAvailability"></span></p>
+
+      <div class="modal-actions">
+        <button id="cancelBtn">Cancel</button>
+        <button id="borrowBtn">Borrow</button>
+        <button id="buyBtn">Buy</button>
+      </div>
+
+      <!-- Admin Actions -->
+      <div class="modal-actions" id="adminActions">
+        <h3>Admin Actions</h3>
+        <button id="deleteBtn">Delete</button>
+        <button id="updateBtn">Update</button>
+      </div>
+
+      <!-- Update Book Form (Initially Hidden) -->
+      <div id="updateForm" class="hidden">
+        <h3>Update Book Details</h3>
+        <label>Title: <input type="text" id="updateTitle" /></label><br/>
+        <label>Author: <input type="text" id="updateAuthor" /></label><br/>
+        <label>Description: <textarea id="updateDescription"></textarea></label><br/>
+        <label>Image URL: <input type="text" id="updateImage" /></label><br/>
+        <label>Price: <input type="number" id="updatePrice" step="0.01" /></label><br/>
+        <label>Availability:
+          <select id="updateAvailability">
+            <option value="true">Available</option>
+            <option value="false">Not Available</option>
+          </select>
+        </label><br/>
+        <button id="submitUpdateBtn">Submit</button>
+        <button id="cancelUpdateBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navbar Placeholder -->
+  <div id="navbar-placeholder"></div>
+
+  <!-- Book List Display -->
+  <div class="container">
+    <div class="search-bar">
+      <button>Search</button>
+      <input type="text" id="searchInput" placeholder="Book Title" />
+    </div>
+    <div class="display">
+      <ul id="booklist" class="book-list"></ul>
+      <p id="noResults" class="hidden">No results found.</p>
+    </div>
+  </div>
+</body>
+</html>

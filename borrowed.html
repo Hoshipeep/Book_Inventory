@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Borrowed</title>
+    <link rel="stylesheet" href="main.css">
+    <script type="module" src="borrowedbooks.js"></script>
+    <script type="module" src="navbar.js"></script>
+
+</head>
+<body>
+ 
+<div id="bookModal" class="modal hidden">
+    <div class="modal-content">
+        <h2 id="modalTitle"></h2>
+        <p id="modalAuthor"></p>
+        <img id="modalImage" src="" alt="" />
+        <p id="modalDescription"></p>
+        <p id="modalPrice"></p>
+        <p id="modalAvailability"></p>
+        <div class="modal-actions">
+            <button id="cancelBtn">Cancel</button>
+            <button id="returnBtn">Return</button> 
+            <button id="buyBtn">Buy</button>
+        </div>
+    </div>
+</div>
+
+
+    <div id="navbar-placeholder"></div>
+
+
+    <div class="container">
+        <div class="search-bar">
+            <button>Search</button>
+            <input type="text" id="searchInput" placeholder="Book Title">
+        </div>
+        <div class="display">
+            <ul id="booklist" class="book-list"></ul>
+            <p id="noResults" class="hidden">No results found.</p>
+
+
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
